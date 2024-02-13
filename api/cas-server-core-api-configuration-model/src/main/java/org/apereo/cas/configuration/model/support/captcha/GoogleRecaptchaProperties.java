@@ -108,6 +108,10 @@ public class GoogleRecaptchaProperties implements CasFeatureModule, Serializable
         /**
          * hCaptcha.
          */
-        HCAPTCHA
+        HCAPTCHA,
+        /**
+         * Friendly captcha.
+         */
+        FRIENDLY_CAPTCHA
     }
 }
