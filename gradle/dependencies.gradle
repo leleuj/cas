@@ -2523,7 +2523,6 @@ ext.libraries = [
                     exclude(group: "org.bouncycastle", module: "bcpkix-jdk15on")
                 },
                 dependencies.create(libs.json.smart.get()) {
-                    exclude(group: "org.ow2.asm", module: "asm")
                 },
                 dependencies.create(libs.jcip.annotations.get()) {
                 }

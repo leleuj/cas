@@ -14,8 +14,10 @@ import org.apereo.cas.config.CasCoreServicesAutoConfiguration;
 import org.apereo.cas.config.CasCoreTicketsAutoConfiguration;
 import org.apereo.cas.config.CasCoreWebAutoConfiguration;
 import org.apereo.cas.config.CasCoreWebflowAutoConfiguration;
+import org.apereo.cas.config.CasJsonServiceRegistryAutoConfiguration;
 import org.apereo.cas.config.CasOidcFederationAutoConfiguration;
 import org.apereo.cas.config.CasThymeleafAutoConfiguration;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,9 +35,10 @@ import org.springframework.boot.test.context.SpringBootTest;
         "cas.server.prefix=https://sso.example.org/cas",
         "cas.authn.oidc.federation.role=TRUST_ANCHOR",
         "cas.authn.oidc.federation.jwks-file=file:${#systemProperties['java.io.tmpdir']}/federation.jwks",
-        "cas.authn.oidc.core.issuer=https://sso.example.org/cas/oidc"
+        "cas.authn.oidc.core.issuer=https://sso.example.org/cas/oidc",
+        "cas.service-registry.json.location=classpath:/services"
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-abstract class AbstractOidcTrustAnchorFederationTests extends AbstractOidcFederationTests {
+public abstract class AbstractOidcTrustAnchorFederationTests extends AbstractOidcFederationTests {
 
     @SpringBootConfiguration(proxyBeanMethods = false)
     @ImportAutoConfiguration({
@@ -53,6 +56,7 @@ abstract class AbstractOidcTrustAnchorFederationTests extends AbstractOidcFedera
         CasCoreMultitenancyAutoConfiguration.class,
         CasCoreMultifactorAuthenticationWebflowAutoConfiguration.class,
         CasCoreMultifactorAuthenticationAutoConfiguration.class,
+        CasJsonServiceRegistryAutoConfiguration.class,
         CasOidcFederationAutoConfiguration.class
     })
     public static class SharedTestConfiguration {
