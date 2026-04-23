@@ -83,8 +83,8 @@ class OidcFederationConfiguration {
             @Qualifier(OidcServerDiscoverySettings.BEAN_NAME_FACTORY)
             final ObjectProvider<OidcServerDiscoverySettings> oidcServerDiscoverySettings,
             final CasConfigurationProperties casProperties) {
-        return new OidcWellKnownFederationEndpointController(oidcFederationIssuerService, oidcFederationEntityStatementService,
-                oidcServerDiscoverySettings, casProperties.getAuthn().getOidc());
+        return new OidcWellKnownFederationEndpointController(oidcServerDiscoverySettings, oidcFederationIssuerService,
+                oidcFederationEntityStatementService, casProperties.getAuthn().getOidc());
     }
 
     @RefreshScope(proxyMode = ScopedProxyMode.DEFAULT)

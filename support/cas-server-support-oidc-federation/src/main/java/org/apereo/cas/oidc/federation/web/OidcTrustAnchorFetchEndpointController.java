@@ -9,19 +9,12 @@ import org.apereo.cas.oidc.issuer.OidcIssuerService;
 import org.apereo.cas.services.ServicesManager;
 import org.apereo.cas.support.oauth.OAuth20Constants;
 import org.apereo.cas.support.oauth.util.OAuth20Utils;
-import org.apereo.cas.web.AbstractController;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityType;
-import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.val;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import org.pac4j.jee.context.JEEContext;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,14 +28,16 @@ import jakarta.servlet.http.HttpServletResponse;
  * @author Jerome LELEU
  * @since 8.0.0
  */
-@Tag(name = "OpenID Connect")
-@RequiredArgsConstructor
-public class OidcTrustAnchorFetchEndpointController extends AbstractController {
+public class OidcTrustAnchorFetchEndpointController extends AbstractOidcFederationEndpointController {
 
     private final ServicesManager servicesManager;
-    private final OidcIssuerService oidcIssuerService;
-    private final OidcFederationEntityStatementService federationEntityStatementService;
-    private final OidcProperties oidcProperties;
+
+    public OidcTrustAnchorFetchEndpointController(final ServicesManager servicesManager, final OidcIssuerService oidcIssuerService,
+                                                   final OidcFederationEntityStatementService federationEntityStatementService,
+                                                   final OidcProperties oidcProperties) {
+        super(oidcIssuerService, federationEntityStatementService, oidcProperties);
+        this.servicesManager = servicesManager;
+    }
 
     /**
      * Gets the entity statement for the requested entity.
@@ -61,10 +56,9 @@ public class OidcTrustAnchorFetchEndpointController extends AbstractController {
     public ResponseEntity fetchEntityStatement(@RequestParam("sub") final String sub,
         final HttpServletRequest request, final HttpServletResponse response) throws Exception {
 
-        val webContext = new JEEContext(request, response);
-        if (!oidcIssuerService.validateIssuer(webContext, List.of(OidcConstants.FETCH_FEDERATION_URL))) {
-            val body = OAuth20Utils.getErrorResponseBody(OAuth20Constants.INVALID_REQUEST, "Invalid issuer");
-            return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        val error = retrieveInvalidIssuerError(request, response, OidcConstants.FETCH_FEDERATION_URL);
+        if (error != null) {
+            return error;
         }
 
         val requestedService = searchService(sub);
@@ -74,19 +68,12 @@ public class OidcTrustAnchorFetchEndpointController extends AbstractController {
         }
 
         val issuer = oidcProperties.getCore().getIssuer();
-        val metadata = (JSONObject) JSONValue.parse(requestedService.getMetadata().toString());
-        val fedMeta = new FederationEntityMetadata();
-        fedMeta.setOrganizationName(oidcProperties.getFederation().getOrganization());
-        fedMeta.setContacts(oidcProperties.getFederation().getContacts());
-        fedMeta.setFederationFetchEndpointURI(new URI(issuer + OidcConstants.FETCH_FEDERATION_URL));
-        metadata.put(EntityType.FEDERATION_ENTITY.getValue(), fedMeta.toJSONObject());
+        val federationMetadata = buildMetadata(issuer);
 
-        val entityStatement = federationEntityStatementService.createAndSign(issuer, sub, metadata, null);
-        return ResponseEntity.ok()
-            .cacheControl(CacheControl.noStore().mustRevalidate())
-            .header(HttpHeaders.ACCEPT, OidcConstants.ENTITY_STATEMENT_CONTENT_TYPE.toString())
-            .contentType(OidcConstants.ENTITY_STATEMENT_CONTENT_TYPE)
-            .body(entityStatement.getSignedStatement().serialize());
+        val metadata = (JSONObject) JSONValue.parse(requestedService.getMetadata().toString());
+        metadata.put(EntityType.FEDERATION_ENTITY.getValue(), federationMetadata.toJSONObject());
+
+        return buildEntityStatement(issuer, sub, metadata, null);
     }
 
     protected OidcFederationEntityService searchService(final String sub) {
