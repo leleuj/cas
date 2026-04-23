@@ -81,7 +81,7 @@ public class OidcTrustAnchorFetchEndpointController extends AbstractController {
         fedMeta.setFederationFetchEndpointURI(new URI(issuer + OidcConstants.FETCH_FEDERATION_URL));
         metadata.put(EntityType.FEDERATION_ENTITY.getValue(), fedMeta.toJSONObject());
 
-        val entityStatement = federationEntityStatementService.createAndSign(issuer, sub, metadata, new ArrayList<>());
+        val entityStatement = federationEntityStatementService.createAndSign(issuer, sub, metadata, null);
         return ResponseEntity.ok()
             .cacheControl(CacheControl.noStore().mustRevalidate())
             .header(HttpHeaders.ACCEPT, OidcConstants.ENTITY_STATEMENT_CONTENT_TYPE.toString())

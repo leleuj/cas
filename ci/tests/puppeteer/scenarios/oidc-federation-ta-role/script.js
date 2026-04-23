@@ -3,8 +3,8 @@ const assert = require("assert");
 
 (async () => {
 
-    const url = "https://localhost:8443/cas/oidc/.well-known/openid-federation";
-    const jwt = await cas.doGet(url,
+    const endpointUrl = "https://localhost:8443/cas/oidc/.well-known/openid-federation";
+    const jwt = await cas.doGet(endpointUrl,
         (res) => res.data,
         (error) => {
             throw `Federation endpoint not available: ${error}`;
@@ -26,5 +26,25 @@ const assert = require("assert");
     assert(federationEntity["organization_name"] === "ApereoTA");
     assert(federationEntity["federation_fetch_endpoint"] === "https://localhost:8443/cas/oidc/fetch");
     assert(federationEntity["contacts"] !== undefined);
+
+    const fetchUrl = "https://localhost:8443/cas/oidc/fetch?sub=http%3A%2F%2Frp";
+    const jwt2 = await cas.doGet(fetchUrl,
+        (res) => res.data,
+        (error) => {
+            throw `Fetch endpoint not available: ${error}`;
+        });
+
+    const decoded2 = await cas.decodeJwt(jwt2);
+    await cas.log(decoded2);
+    assert(decoded2.iss === "https://localhost:8443/cas/oidc");
+    assert(decoded2.sub === "http://rp");
+    assert(decoded2.exp !== undefined);
+    assert(decoded2.jwks !== undefined);
+
+    const metadata2 = decoded2.metadata;
+    assert(metadata2["federation_entity"] !== undefined);
+    assert(metadata2["openid_provider"] === undefined);
+    assert(metadata2["openid_relying_party"] !== undefined);
+    assert(decoded2["authority_hints"] === undefined);
 
 })();

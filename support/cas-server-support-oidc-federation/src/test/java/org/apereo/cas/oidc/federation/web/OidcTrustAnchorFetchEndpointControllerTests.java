@@ -63,7 +63,7 @@ class OidcTrustAnchorFetchEndpointControllerTests extends AbstractOidcTrustAncho
         val claims = jwt.getJWTClaimsSet();
         assertEquals("https://sso.example.org/cas/oidc", claims.getIssuer());
         assertEquals(RP, claims.getSubject());
-        assertEquals(0, ((List<?>) claims.getClaim("authority_hints")).size());
+        assertNull(claims.getClaim("authority_hints"));
         assertNotNull(claims.getClaim("jwks"));
         val metadata = (Map) claims.getClaim("metadata");
         assertNotNull(metadata.get("federation_entity"));
@@ -82,7 +82,7 @@ class OidcTrustAnchorFetchEndpointControllerTests extends AbstractOidcTrustAncho
         val claims = jwt.getJWTClaimsSet();
         assertEquals("https://sso.example.org/cas/oidc", claims.getIssuer());
         assertEquals(OP, claims.getSubject());
-        assertEquals(0, ((List<?>) claims.getClaim("authority_hints")).size());
+        assertNull(claims.getClaim("authority_hints"));
         assertNotNull(claims.getClaim("jwks"));
         val metadata = (Map) claims.getClaim("metadata");
         assertNotNull(metadata.get("federation_entity"));

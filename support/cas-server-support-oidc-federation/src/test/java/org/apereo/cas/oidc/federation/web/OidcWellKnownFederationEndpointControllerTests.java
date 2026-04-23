@@ -42,7 +42,8 @@ class OidcWellKnownFederationEndpointControllerTests {
                                 return request;
                             }))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value(OAuth20Constants.INVALID_REQUEST));
+                    .andExpect(jsonPath("$.error").value(OAuth20Constants.INVALID_REQUEST))
+                    .andExpect(jsonPath("$.error_description").value("Invalid issuer"));
         }
 
         @Test
@@ -79,7 +80,8 @@ class OidcWellKnownFederationEndpointControllerTests {
                                 return request;
                             }))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value(OAuth20Constants.INVALID_REQUEST));
+                    .andExpect(jsonPath("$.error").value(OAuth20Constants.INVALID_REQUEST))
+                    .andExpect(jsonPath("$.error_description").value("Invalid issuer"));
         }
 
         @Test

@@ -32,6 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
+import static org.apereo.cas.configuration.model.support.oidc.federation.OidcFederationRole.isTaOrIntermediate;
+import static org.apereo.cas.oidc.OidcConstants.FETCH_FEDERATION_URL;
 import static org.apereo.cas.oidc.OidcConstants.WELL_KNOWN_OPENID_FEDERATION_URL;
 
 /**
@@ -131,10 +133,18 @@ class OidcFederationConfiguration {
         final OidcIssuerService oidcIssuerService,
         final CasConfigurationProperties casProperties) {
         val baseEndpoint = getOidcBaseEndpoint(oidcIssuerService, casProperties);
+        val endpoints = new ArrayList<String>();
+        endpoints.add(baseEndpoint + '/' + WELL_KNOWN_OPENID_FEDERATION_URL);
+
+        val role = casProperties.getAuthn().getOidc().getFederation().getRole();
+        if (isTaOrIntermediate(role)) {
+            endpoints.add(baseEndpoint + FETCH_FEDERATION_URL);
+        }
+
         return new CasWebSecurityConfigurer<>() {
             @Override
             public List<String> getIgnoredEndpoints() {
-                return List.of(baseEndpoint + '/' + WELL_KNOWN_OPENID_FEDERATION_URL);
+                return endpoints;
             }
         };
     }
