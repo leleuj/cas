@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.val;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,12 +54,17 @@ public class OidcTrustAnchorFetchEndpointController extends AbstractOidcFederati
         parameters = {
             @Parameter(name = "sub", description = "entityId", required = true)
         })
-    public ResponseEntity fetchEntityStatement(@RequestParam("sub") final String sub,
+    public ResponseEntity fetchEntityStatement(@RequestParam(value = "sub", required = false) final String sub,
         final HttpServletRequest request, final HttpServletResponse response) throws Exception {
 
         val error = retrieveInvalidIssuerError(request, response, OidcConstants.FETCH_FEDERATION_URL);
         if (error != null) {
             return error;
+        }
+
+        if (StringUtils.isBlank(sub)) {
+            val body = OAuth20Utils.getErrorResponseBody(OAuth20Constants.INVALID_REQUEST, "Invalid entity");
+            return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
         }
 
         val requestedService = searchService(sub);

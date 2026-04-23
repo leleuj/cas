@@ -44,6 +44,15 @@ class OidcTrustAnchorFetchEndpointControllerTests extends AbstractOidcTrustAncho
     }
 
     @Test
+    void verifyMissingEntity() throws Exception {
+        mockMvc.perform(get(FETCH_ENDPOINT_URL)
+                        .with(withHttpRequestProcessor()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(OAuth20Constants.INVALID_REQUEST))
+                .andExpect(jsonPath("$.error_description").value("Invalid entity"));
+    }
+
+    @Test
     void verifyInvalidEntity() throws Exception {
         mockMvc.perform(get(FETCH_ENDPOINT_URL + "?sub=http://fake")
                         .with(withHttpRequestProcessor()))
