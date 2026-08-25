@@ -56,6 +56,18 @@ class WebApplicationServiceFactoryTests {
     }
 
     @Test
+    void verifyInternalServiceAttributesCannotBeInjected() {
+        val request = new MockHttpServletRequest();
+        request.addParameter(Service.class.getName(), "https://evil.example.net/collect");
+        request.addParameter(CasProtocolConstants.PARAMETER_SERVICE,
+            "https://example.org/app?" + Service.class.getName() + "=https://evil.example.net/collect");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request, new MockHttpServletResponse()));
+        val service = serviceFactory.createService(request);
+        assertNotNull(service);
+        assertFalse(service.getAttributes().containsKey(Service.class.getName()));
+    }
+
+    @Test
     void verifyServiceCreationSuccessfullyById() {
         val request = new MockHttpServletRequest();
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request, new MockHttpServletResponse()));
